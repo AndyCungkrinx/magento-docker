@@ -1,0 +1,13 @@
+#!/bin/bash
+DB_NAME="magentodb"
+USERNAME="magentouser"
+PASSWORD="magento123"
+HOSTNAME="127.0.0.1"
+mysql <<MYSQL_SCRIPT
+    CREATE DATABASE magentodb;
+    CREATE USER '$USERNAME'@'%' IDENTIFIED BY '$PASSWORD';
+    CREATE USER '$USERNAME'@'localhost' IDENTIFIED BY '$PASSWORD';
+    CREATE USER '$USERNAME'@'127.0.0.1' IDENTIFIED BY '$PASSWORD';
+    GRANT ALL PRIVILEGES ON $DB_NAME.* TO 'magentouser'@'localhost';
+    GRANT ALL PRIVILEGES ON $DB_NAME.* TO 'magentouser'@'127.0.0.1';
+MYSQL_SCRIPT
