@@ -67,7 +67,7 @@ RUN apt install -y mysql-client mysql-server
 
 # Install Nginx
 RUN apt install -y nginx;
-COPY nginx/magento.conf /etc/nginx/sites-enabled/magento.conf
+COPY nginx/magento.conf /etc/nginx/sites-enabled/default
 
 # Install Redis
 RUN apt install -y redis redis-tools
@@ -83,14 +83,17 @@ RUN cd /tmp; \
     dpkg -i elasticsearch-7.6.1-amd64.deb;
 
 # Magento Clone
-#WORKDIR /var/www/
-#git clone https://github.com/magento/magento2.git;
+WORKDIR /var/www/
+RUN git clone https://github.com/magento/magento2.git;
+
 
 # Set Entrypoint
 COPY mysql-injector.sh /mysql-injector.sh
 COPY magento-installer.sh /magento-installer.sh
 COPY start.sh /start.sh
 RUN chmod u+x /mysql-injector.sh /magento-installer.sh /start.sh
-#ENTRYPOINT /start.sh
-EXPOSE 80 3306
+
+WORKDIR /var/www/magento2
+ENTRYPOINT /start.sh
+EXPOSE 80 3306 8080 6082 9000 6379 9200
 
