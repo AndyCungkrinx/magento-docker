@@ -29,14 +29,6 @@ services:
     networks:
       - internal
       - proxy
-    deploy:
-      resources:
-        limits:
-          cpus: '${nginx_cpus_limit}'
-          memory: ${nginx_memory_limit}
-        reservations:
-          cpus: '${nginx_cpus_request}'
-          memory: ${nginx_memory_request}
 
   php:
     container_name: php
@@ -57,15 +49,7 @@ services:
       - database
     networks:
       - internal
-    deploy:
-      resources:
-        limits:
-          cpus: '${php_cpus_limit}'
-          memory: ${php_memory_limit}
-        reservations:
-          cpus: '${php_cpus_request}'
-          memory: ${php_memory_request}
-  
+
   database:
     container_name: database
     restart: unless-stopped # Set to 'always' for automatically restart
@@ -84,14 +68,6 @@ services:
     networks:
       - internal
       - dbserver
-    deploy:
-      resources:
-        limits:
-          cpus: '${db_cpus_limit}'
-          memory: ${db_memory_limit}
-        reservations:
-          cpus: '${db_cpus_request}'
-          memory: ${db_memory_request}
 
   elasticsearch:
     container_name: elasticsearch
@@ -104,14 +80,6 @@ services:
       - php
     networks:
       - internal
-    deploy:
-      resources:
-        limits:
-          cpus: '${elasticsearch_cpus_limit}'
-          memory: ${elasticsearch_memory_limit}
-        reservations:
-          cpus: '${elasticsearch_cpus_request}'
-          memory: ${elasticsearch_memory_request}
 
   varnish:
     container_name: varnish
@@ -132,14 +100,6 @@ services:
       - nginx
     networks:
       - proxy
-    deploy:
-      resources:
-        limits:
-          cpus: '${varnish_cpus_limit}'
-          memory: ${varnish_memory_limit}
-        reservations:
-          cpus: '${varnish_cpus_request}'
-          memory: ${varnish_memory_request}
 
   redis-server:
     container_name: redis-server
@@ -157,13 +117,5 @@ services:
     volumes:
       - ./config/redis/reis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
-    deploy:
-      resources:
-        limits:
-          cpus: '${redis_cpus_limit}'
-          memory: ${redis_memory_limit}
-        reservations:
-          cpus: '${redis_cpus_request}'
-          memory: ${redis_memory_request}
     
   
