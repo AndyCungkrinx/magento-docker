@@ -36,6 +36,7 @@ php bin/magento config:set --scope=default --scope-code=0 system/full_page_cache
 
 # Sample data
 php -d memory_limit=-1 bin/magento setup:perf:generate-fixtures setup/performance-toolkit/profiles/ce/small.xml
+php bin/magento config:set dev/static/sign 1
 php -d memory_limit=-1 bin/magento setup:upgrade
 php -d memory_limit=-1 bin/magento setup:di:compile
 php -d memory_limit=-1 bin/magento setup:static-content:deploy -f
