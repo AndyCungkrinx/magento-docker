@@ -7,7 +7,7 @@ composer install; \
 php bin/magento setup:install \
 --cleanup-database \
 --base-url=http://localhost/ \
---db-host=localhost \
+--db-host=database \
 --db-name=magentodb \
 --db-user=magentouser \
 --db-password=magento123 \
@@ -22,7 +22,7 @@ php bin/magento setup:install \
 --timezone=Asia/Jakarta \
 --use-rewrites=1 \
 --search-engine=elasticsearch7 \
---elasticsearch-host=localhost \
+--elasticsearch-host=elasticsearch \
 --elasticsearch-port=9200
 chown -R www-data:www-data $MAGENTO_DIR;
 
