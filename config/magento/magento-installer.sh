@@ -7,7 +7,7 @@ SAMPLE_DATA="/var/www/magento2/magento2-sample-data"
 composer install; \
 php bin/magento setup:install \
 --cleanup-database \
---base-url=http://139.59.243.234/ \
+--base-url=http://localhost/ \
 --db-host=database \
 --db-name=magentodb \
 --db-user=magentouser \
