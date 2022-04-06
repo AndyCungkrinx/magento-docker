@@ -1,0 +1,168 @@
+version: "3.6"
+networks:
+  proxy:
+    external: true
+    name: proxy
+  internal:
+    external: false
+    name: internal
+  dbserver:
+    external: true
+    name: dbserver
+
+services:
+  varnish:
+    container_name: varnish
+    restart: unless-stopped # Set to 'always' for automatically restart
+    build: 
+      context: ./docker/varnish
+    environment:
+      - VARNISH_SIZE=${varnish_size}
+    tmpfs:
+      - /var/lib/varnish:exec
+    tty: true
+    volumes:
+      - ./config/varnish/default.vcl:/etc/varnish/default.vcl # Config
+    ports:
+      - 80:80
+    depends_on:
+      - nginx
+    networks:
+      - proxy
+    deploy:
+      resources:
+        limits:
+          cpus: '${varnish_cpus_limit}'
+          memory: ${varnish_memory_limit}
+        reservations:
+          cpus: '${varnish_cpus_request}'
+          memory: ${varnish_memory_request}
+
+  nginx:
+    container_name: nginx
+    restart: unless-stopped # Set to 'always' for automatically restart
+    build: 
+      context: ./docker/nginx
+    tty: true
+    volumes:
+      - ${source_dir}:/var/www/magento2 # Root directory
+      - ./config/nginx/default.conf:/etc/nginx/sites-enabled/default # Site config
+    working_dir: /var/www/magento2
+    ports:
+      - 8080
+    depends_on:
+      - php
+      - database
+    networks:
+      - internal
+      - proxy
+    deploy:
+      resources:
+        limits:
+          cpus: '${nginx_cpus_limit}'
+          memory: ${nginx_memory_limit}
+        reservations:
+          cpus: '${nginx_cpus_request}'
+          memory: ${nginx_memory_request}
+
+  php:
+    container_name: php
+    restart: unless-stopped # Set to 'always' for automatically restart
+    build: 
+      context: ./docker/php
+    tty: true
+    volumes:
+      - ${source_dir}:/var/www/magento2 # Root directory php-fpm
+      - ./config/php/magento.ini:/etc/php/7.4/cli/conf.d/magento.ini # Config php-cli
+      - ./config/php/magento.ini:/etc/php/7.4/fpm/conf.d/magento.ini # Config fpm
+      - ./config/magento/magento-installer.sh:/var/www/magento2/magento-installer.sh # Magento installer
+    working_dir: /var/www/magento2
+    entrypoint: /var/www/magento2/magento-installer.sh
+    ports:
+      - 9000
+    depends_on:
+      - database
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: '${php_cpus_limit}'
+          memory: ${php_memory_limit}
+        reservations:
+          cpus: '${php_cpus_request}'
+          memory: ${php_memory_request}
+  
+  database:
+    container_name: database
+    restart: unless-stopped # Set to 'always' for automatically restart
+    build: 
+      context: ./docker/mysql
+    tty: true
+    volumes:
+      - ${db_source}:/var/lib/mysql/ # Mount db data
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${root_password}
+      - MYSQL_DATABASE=${db_name}
+      - MYSQL_USER=${db_user}
+      - MYSQL_PASSWORD=${db_password}
+    networks:
+      - internal
+      - dbserver
+    deploy:
+      resources:
+        limits:
+          cpus: '${db_cpus_limit}'
+          memory: ${db_memory_limit}
+        reservations:
+          cpus: '${db_cpus_request}'
+          memory: ${db_memory_request}
+
+  elasticsearch:
+    container_name: elasticsearch
+    restart: unless-stopped # Set to 'always' for automatically restart
+    build: 
+      context: ./docker/elasticsearch
+    ports:
+      - 9200
+    depends_on:
+      - php
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: '${elasticsearch_cpus_limit}'
+          memory: ${elasticsearch_memory_limit}
+        reservations:
+          cpus: '${elasticsearch_cpus_request}'
+          memory: ${elasticsearch_memory_request}
+
+  redis:
+    container_name: redis
+    restart: unless-stopped # Set to 'always' for automatically restart
+    build: 
+      context: ./docker/redis
+    ports:
+      - 6379
+    environment:
+     - REDIS_REPLICATION_MODE=master
+    depends_on:
+      - php
+    networks:
+      - internal
+    volumes:
+      - ./config/redis/reis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    deploy:
+      resources:
+        limits:
+          cpus: '${redis_cpus_limit}'
+          memory: ${redis_memory_limit}
+        reservations:
+          cpus: '${redis_cpus_request}'
+          memory: ${redis_memory_request}
+    
+  
