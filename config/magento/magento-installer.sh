@@ -27,8 +27,8 @@ php bin/magento setup:install \
 chown -R www-data:www-data $MAGENTO_DIR;
 
 # Config Redis+Varnish
-php bin/magento setup:config:set --http-cache-hosts=127.0.0.1:80
-php php bin/magento setup:config:set --session-save=redis --session-save-redis-host=127.0.0.1 --session-save-redis-log-level=3 --session-save-redis-db=0
+php bin/magento setup:config:set --http-cache-hosts=varnish:80
+php php bin/magento setup:config:set --session-save=redis --session-save-redis-host=redis-server --session-save-redis-log-level=3 --session-save-redis-db=0
 
 # Sample data
 git clone https://github.com/magento/magento2-sample-data.git
@@ -42,3 +42,5 @@ php -d memory_limit=-1 bin/magento setup:static-content:deploy -f
 chmod 777 -R {var,pub,generated}
 php bin/magento maintenance:disable
 php bin/magento cache:flush
+
+php-fpm7.4 -F -R;

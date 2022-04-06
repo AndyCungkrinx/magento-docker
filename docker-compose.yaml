@@ -11,33 +11,6 @@ networks:
     name: dbserver
 
 services:
-  varnish:
-    container_name: varnish
-    restart: unless-stopped # Set to 'always' for automatically restart
-    build: 
-      context: ./docker/varnish
-    environment:
-      - VARNISH_SIZE=${varnish_size}
-    tmpfs:
-      - /var/lib/varnish:exec
-    tty: true
-    volumes:
-      - ./config/varnish/default.vcl:/etc/varnish/default.vcl # Config
-    ports:
-      - 80:80
-    depends_on:
-      - nginx
-    networks:
-      - proxy
-    deploy:
-      resources:
-        limits:
-          cpus: '${varnish_cpus_limit}'
-          memory: ${varnish_memory_limit}
-        reservations:
-          cpus: '${varnish_cpus_request}'
-          memory: ${varnish_memory_request}
-
   nginx:
     container_name: nginx
     restart: unless-stopped # Set to 'always' for automatically restart
@@ -77,7 +50,7 @@ services:
       - ./config/php/magento.ini:/etc/php/7.4/fpm/conf.d/magento.ini # Config fpm
       - ./config/magento/magento-installer.sh:/var/www/magento2/magento-installer.sh # Magento installer
     working_dir: /var/www/magento2
-    entrypoint: /var/www/magento2/magento-installer.sh
+    entrypoint: bash /var/www/magento2/magento-installer.sh
     ports:
       - 9000
     depends_on:
@@ -140,8 +113,36 @@ services:
           cpus: '${elasticsearch_cpus_request}'
           memory: ${elasticsearch_memory_request}
 
-  redis:
-    container_name: redis
+  varnish:
+    container_name: varnish
+    restart: unless-stopped # Set to 'always' for automatically restart
+    build: 
+      context: ./docker/varnish
+    environment:
+      - VARNISH_SIZE=${varnish_size}
+    tmpfs:
+      - /var/lib/varnish:exec
+    tty: true
+    volumes:
+      - ./config/varnish/default.vcl:/etc/varnish/default.vcl # Config
+    ports:
+      - 80:80
+      - 8080
+    depends_on:
+      - nginx
+    networks:
+      - proxy
+    deploy:
+      resources:
+        limits:
+          cpus: '${varnish_cpus_limit}'
+          memory: ${varnish_memory_limit}
+        reservations:
+          cpus: '${varnish_cpus_request}'
+          memory: ${varnish_memory_request}
+
+  redis-server:
+    container_name: redis-server
     restart: unless-stopped # Set to 'always' for automatically restart
     build: 
       context: ./docker/redis

@@ -10,9 +10,7 @@ Dockerize Magento Using docker-compose
 - ./stop.sh (stop all container)
 ```
 
-## Database
+##
 ```sh
-- You can using root user for full privilage
-- Host is 127.0.0.1
-- mysqldump -uroot -p[yourpassword] -h127.0.0.1 [your_database] > your_database.sql
-
+- for fresh install just go to folder www then run 'git clone https://github.com/magento/magento2.git'
+```

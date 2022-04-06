@@ -58,5 +58,4 @@ RUN apt -y autoremove; \
     mkdir /run/php; \
     touch /run/php/php7.4-fpm.sock;
 
-CMD ["php-fpm7.4", "-F", "-R"]
 EXPOSE 9000
