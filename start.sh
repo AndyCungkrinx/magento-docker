@@ -1,9 +1,11 @@
 #!/bin/bash
 # Start Service
 service mysql start
-service elasticsearch start
-service redis start
+service redis-server start
 service varnish start
+service php7.4-fpm start
+service nginx start
+service elasticsearch start
 
 # Provisioning mysql user
 bash /mysql-injector.sh
@@ -11,6 +13,4 @@ bash /mysql-injector.sh
 # Install magento
 bash /magento-installer.sh
 
-# Start Web Server
-service php7.4-fpm start
-service nginx start
+echo "magento2 already running"
