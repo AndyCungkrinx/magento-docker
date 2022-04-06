@@ -18,8 +18,8 @@ services:
       context: ./docker/nginx
     tty: true
     volumes:
-      - ${source_dir}:/var/www/magento2 # Root directory
-      - ./config/nginx/default.conf:/etc/nginx/sites-enabled/default # Site config
+      - ${source_dir}:/var/www/magento2:rw # Root directory
+      - ./config/nginx/default.conf:/etc/nginx/sites-enabled/default:rw # Site config
     working_dir: /var/www/magento2
     ports:
       - 8080
@@ -37,10 +37,10 @@ services:
       context: ./docker/php
     tty: true
     volumes:
-      - ${source_dir}:/var/www/magento2 # Root directory php-fpm
-      - ./config/php/magento.ini:/etc/php/7.4/cli/conf.d/magento.ini # Config php-cli
-      - ./config/php/magento.ini:/etc/php/7.4/fpm/conf.d/magento.ini # Config fpm
-      - ./config/magento/magento-installer.sh:/var/www/magento2/magento-installer.sh # Magento installer
+      - ${source_dir}:/var/www/magento2:rw # Root directory php-fpm
+      - ./config/php/magento.ini:/etc/php/7.4/cli/conf.d/magento.ini:rw # Config php-cli
+      - ./config/php/magento.ini:/etc/php/7.4/fpm/conf.d/magento.ini:rw # Config fpm
+      - ./config/magento/magento-installer.sh:/var/www/magento2/magento-installer.sh:rw # Magento installer
     working_dir: /var/www/magento2
     entrypoint: bash /var/www/magento2/magento-installer.sh
     ports:
@@ -92,7 +92,7 @@ services:
       - /var/lib/varnish:exec
     tty: true
     volumes:
-      - ./config/varnish/default.vcl:/etc/varnish/default.vcl # Config
+      - ./config/varnish/default.vcl:/etc/varnish/default.vcl:rw # Config
     ports:
       - 80:80
       - 8080
@@ -115,7 +115,7 @@ services:
     networks:
       - internal
     volumes:
-      - ./config/redis/reis.conf:/usr/local/etc/redis/redis.conf
+      - ./config/redis/reis.conf:/usr/local/etc/redis/redis.conf:rw
     command: redis-server /usr/local/etc/redis/redis.conf
     
   
