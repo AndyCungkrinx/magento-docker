@@ -24,11 +24,15 @@ php bin/magento setup:install \
 --use-rewrites=1 \
 --search-engine=elasticsearch7 \
 --elasticsearch-host=elasticsearch \
---elasticsearch-port=9200
+--elasticsearch-port=9200 \
+--http-cache-hosts=varnish:80 \
+--session-save=redis \
+--session-save-redis-host=redis-server \
+--session-save-redis-log-level=3 \
+--session-save-redis-db=0
 
-# Config Redis+Varnish
-php bin/magento setup:config:set --http-cache-hosts=varnish:80
-php bin/magento setup:config:set --session-save=redis --session-save-redis-host=redis-server --session-save-redis-log-level=3 --session-save-redis-db=0
+# Enable varnish
+php bin/magento config:set --scope=default --scope-code=0 system/full_page_cache/caching_application 2
 
 # Sample data
 php -d memory_limit=-1 bin/magento setup:perf:generate-fixtures setup/performance-toolkit/profiles/ce/small.xml
