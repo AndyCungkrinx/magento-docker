@@ -25,7 +25,6 @@ php bin/magento setup:install \
 --search-engine=elasticsearch7 \
 --elasticsearch-host=elasticsearch \
 --elasticsearch-port=9200
-chown -R www-data:www-data $MAGENTO_DIR;
 
 # Config Redis+Varnish
 php bin/magento setup:config:set --http-cache-hosts=varnish:80
