@@ -39,7 +39,7 @@ php -f $SAMPLE_DATA/dev/tools/build-sample-data.php -- --ce-source="$MAGENTO_DIR
 php -d memory_limit=-1 bin/magento setup:upgrade
 php -d memory_limit=-1 bin/magento setup:di:compile
 php -d memory_limit=-1 bin/magento setup:static-content:deploy -f
-chmod 777 -R {var,pub,generated}
+chmod 777 -R var/ pub/ generated/
 php bin/magento maintenance:disable
 php bin/magento cache:flush
 
