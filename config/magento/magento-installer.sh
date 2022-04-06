@@ -1,5 +1,5 @@
 #!/bin/bash
-sleep 60
+sleep 90
 MAGENTO_DIR="/var/www/magento2"
 SAMPLE_DATA="/var/www/magento2/magento2-sample-data"
 
