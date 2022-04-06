@@ -41,6 +41,7 @@ php -d memory_limit=-1 bin/magento setup:di:compile
 php -d memory_limit=-1 bin/magento setup:static-content:deploy -f
 chmod 777 -R var/ pub/ generated/
 php bin/magento maintenance:disable
+php bin/magento indexer:reindex
 php bin/magento cache:flush
 
 php-fpm7.4 -F -R;
