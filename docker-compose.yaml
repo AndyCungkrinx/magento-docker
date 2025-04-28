@@ -1,5 +1,6 @@
-version: "3.6"
 networks:
+  default:
+    name: "proxy"
   proxy:
     external: true
     name: proxy
@@ -14,8 +15,7 @@ services:
   nginx:
     container_name: nginx
     restart: unless-stopped # Set to 'always' for automatically restart
-    build: 
-      context: ./docker/nginx
+    image: nginx:1.22
     tty: true
     volumes:
       - ${source_dir}:/var/www/magento2:rw # Root directory
@@ -38,12 +38,15 @@ services:
     tty: true
     volumes:
       - ${source_dir}:/var/www/magento2:rw # Root directory php-fpm
-      - ./config/php/magento.ini:/etc/php/7.4/cli/conf.d/magento.ini:rw # Config php-cli
-      - ./config/php/magento.ini:/etc/php/7.4/fpm/conf.d/magento.ini:rw # Config fpm
-      - ./config/php/www.conf:/etc/php/7.4/fpm/pool.d/www.conf:rw # Config pool fpm
+      - ./config/php/magento.ini:/etc/php/8.1/cli/conf.d/magento.ini:rw # Config php-cli
+      - ./config/php/magento.ini:/etc/php/8.1/fpm/conf.d/magento.ini:rw # Config fpm
+      - ./config/php/www.conf:/etc/php/8.1/fpm/pool.d/www.conf:rw # Config pool fpm
       - ./config/magento/magento-installer.sh:/var/www/magento2/magento-installer.sh:rw # Magento installer
+      - ./config/magento/magento-deploy.sh:/var/www/magento2/magento-deploy.sh:rw # Magento deployment
+      - ./config/magento/start.sh:/var/www/magento2/start.sh:rw # Magento entrypoint
     working_dir: /var/www/magento2
-    entrypoint: bash /var/www/magento2/magento-installer.sh
+    # Enable this for magento already installed
+    entrypoint: bash /var/www/magento2/start.sh
     ports:
       - 9000
     depends_on:
@@ -54,8 +57,7 @@ services:
   database:
     container_name: database
     restart: unless-stopped # Set to 'always' for automatically restart
-    build: 
-      context: ./docker/mysql
+    image: mysql:8.0
     tty: true
     volumes:
       - ${db_source}:/var/lib/mysql/ # Mount db data
@@ -73,10 +75,21 @@ services:
   elasticsearch:
     container_name: elasticsearch
     restart: unless-stopped # Set to 'always' for automatically restart
-    build: 
-      context: ./docker/elasticsearch
+    image: elasticsearch:7.16.3
+    user: "1000:root"
+    environment:
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xmx512m -Xms512m
+      - bootstrap.memory_lock=true
+      - ELASTICSEARCH_PLUGINS=phonetic
+      - discovery.type=single-node
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+      - ./config/elasticsearch.yml:/usr/share/elasticsearch/elasticsearch.yml:ro
+      - ./config/jvm.options:/usr/share/elasticsearch/jvm.options:ro
     ports:
       - 9200
+      - 9300
     depends_on:
       - php
     networks:
@@ -85,8 +98,7 @@ services:
   varnish:
     container_name: varnish
     restart: unless-stopped # Set to 'always' for automatically restart
-    build: 
-      context: ./docker/varnish
+    image: varnish:6.0.13
     environment:
       - VARNISH_SIZE=${varnish_size}
     tmpfs:
@@ -105,10 +117,9 @@ services:
   redis-server:
     container_name: redis-server
     restart: unless-stopped # Set to 'always' for automatically restart
-    build: 
-      context: ./docker/redis
+    image: redis:7.2
     ports:
-      - 6379
+      - 6379:6379
     environment:
      - REDIS_REPLICATION_MODE=master
     depends_on:

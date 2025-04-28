@@ -1,0 +1,140 @@
+networks:
+  default:
+    name: "proxy"
+  proxy:
+    external: true
+    name: proxy
+  internal:
+    external: false
+    name: internal
+  dbserver:
+    external: true
+    name: dbserver
+
+services:
+  nginx:
+    container_name: nginx
+    restart: unless-stopped # Set to 'always' for automatically restart
+    image: nginx:1.22
+    tty: true
+    volumes:
+      - ${source_dir}:/var/www/magento2:rw # Root directory
+      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:rw # Site config
+    working_dir: /var/www/magento2
+    ports:
+      - 8080:8080
+    depends_on:
+      - php
+      - database
+    networks:
+      - internal
+      - proxy
+
+  php:
+    container_name: php
+    restart: unless-stopped # Set to 'always' for automatically restart
+    build: 
+      context: ./docker/php
+    tty: true
+    volumes:
+      - ${source_dir}:/var/www/magento2:rw # Root directory php-fpm
+      - ./config/php/magento.ini:/etc/php/8.1/cli/conf.d/magento.ini:rw # Config php-cli
+      - ./config/php/magento.ini:/etc/php/8.1/fpm/conf.d/magento.ini:rw # Config fpm
+      - ./config/php/www.conf:/etc/php/8.1/fpm/pool.d/www.conf:rw # Config pool fpm
+      - ./config/magento/magento-installer.sh:/var/www/magento2/magento-installer.sh:rw # Magento installer
+      - ./config/magento/magento-deploy.sh:/var/www/magento2/magento-deploy.sh:rw # Magento deployment
+      - ./config/magento/start.sh:/var/www/magento2/start.sh:rw # Magento entrypoint
+    working_dir: /var/www/magento2
+    entrypoint: bash /var/www/magento2/magento-installer.sh
+    ports:
+      - 9000
+    depends_on:
+      - database
+    networks:
+      - internal
+
+  database:
+    container_name: database
+    restart: unless-stopped # Set to 'always' for automatically restart
+    image: mysql:8.0
+    tty: true
+    volumes:
+      - ${db_source}:/var/lib/mysql/ # Mount db data
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${root_password}
+      - MYSQL_DATABASE=${db_name}
+      - MYSQL_USER=${db_user}
+      - MYSQL_PASSWORD=${db_password}
+    networks:
+      - internal
+      - dbserver
+
+  elasticsearch:
+    container_name: elasticsearch
+    restart: unless-stopped # Set to 'always' for automatically restart
+    image: elasticsearch:7.16.3
+    environment:
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xmx512m -Xms512m
+      - bootstrap.memory_lock=true
+      - ELASTICSEARCH_PLUGINS=phonetic
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data:rw
+      - ./config/elasticsearch.yml:/usr/share/elasticsearch/elasticsearch.yml:rw
+      - ./config/jvm.options:/usr/share/elasticsearch/jvm.options:rw
+    ports:
+      - 9200
+      - 9300
+    depends_on:
+      - php
+    networks:
+      - internal
+
+  varnish:
+    container_name: varnish
+    restart: unless-stopped # Set to 'always' for automatically restart
+    image: varnish:6.0.13
+    environment:
+      - VARNISH_SIZE=${varnish_size}
+    tmpfs:
+      - /var/lib/varnish:exec
+    tty: true
+    volumes:
+      - ./config/varnish/default.vcl:/etc/varnish/default.vcl:rw # Config
+    ports:
+      - 80:80
+      - 8080
+    depends_on:
+      - nginx
+    networks:
+      - proxy
+
+  redis-server:
+    container_name: redis-server
+    restart: unless-stopped # Set to 'always' for automatically restart
+    image: redis:7.2
+    ports:
+      - 6379:6379
+    environment:
+     - REDIS_REPLICATION_MODE=master
+    depends_on:
+      - php
+    networks:
+      - internal
+    volumes:
+      - ./config/redis/reis.conf:/usr/local/etc/redis/redis.conf:rw
+    command: redis-server /usr/local/etc/redis/redis.conf
+    
+  
