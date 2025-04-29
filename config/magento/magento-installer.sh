@@ -33,6 +33,11 @@ php bin/magento setup:install \
 
 # Elasticsearch 
 bin/magento module:enable Magento_Elasticsearch7 Magento_Elasticsearch
+bin/magento config:set catalog/search/engine 'elasticsearch7'
+bin/magento config:set catalog/search/elasticsearch7_index_prefix m2_magento
+bin/magento config:set catalog/search/elasticsearch7_server_hostname elasticsearch
+bin/magento config:set catalog/search/elasticsearch7_server_port '9200'
+
 
 # Sample data
 git clone --branch 2.4.6 --single-branch https://github.com/magento/magento2-sample-data
